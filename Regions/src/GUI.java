@@ -1,5 +1,6 @@
 import java.awt.EventQueue;
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 import javax.swing.JFileChooser;
@@ -16,6 +17,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 public class GUI {
+	public static ProgressBar progressBar;
 	protected Shell shell;
     public static void main(String[] args) {
         Runnable r = new Runnable() {
@@ -49,12 +51,13 @@ public class GUI {
 		saveBtn.setText("Сохранить");
 		Button openBtn = new Button(shell, SWT.NONE);
 		openBtn.setText("Путь к кодам");
-		ProgressBar progressBar = new ProgressBar(shell, SWT.NONE);
+		progressBar = new ProgressBar(shell, SWT.NONE);
 		GridData gd_progressBar = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
 		gd_progressBar.widthHint = 159;
 		progressBar.setLayoutData(gd_progressBar);
-		progressBar.setSelection(40);
+	//	progressBar.setSelection(40);
 		progressBar.setMaximum(120);
+		
         
         saveBtn.addSelectionListener(new SelectionAdapter() {
 
@@ -67,11 +70,12 @@ public class GUI {
 	                if(returnVal==JFileChooser.APPROVE_OPTION){
 	                File file = saveFile.getSelectedFile();
 	                System.out.println("Saving:"+file+".xlsx");
-	                job job = new job();
-	                job.writeExcel(file);
+	                job job = new job(file);
+	                new LongRunningOperation(display, progressBar).start();
+	                job.writeExcel();
 	                }
 	                else System.out.println("Canceled");
-				} catch (URISyntaxException e) {
+				} catch (URISyntaxException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -99,12 +103,31 @@ public class GUI {
             display.sleep();
           }
         }
-   /*     frame.getContentPane().add(new JLabel("File Chooser"), BorderLayout.NORTH);
-        frame.getContentPane().add(saveBtn, BorderLayout.CENTER);
-        frame.getContentPane().add(openBtn, BorderLayout.SOUTH);
-
-        frame.pack();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);*/
     }
 }
+
+class LongRunningOperation extends Thread {
+	  private Display display;
+
+	  private ProgressBar progressBar;
+
+	  public LongRunningOperation(Display display, ProgressBar progressBar) {
+	    this.display = display;
+	    this.progressBar = progressBar;
+	  }
+
+	  public void run() {
+	    for (int i = 0; i < 30; i++) {
+	      try {
+	        Thread.sleep(1000);
+	      } catch (InterruptedException e) {
+	      }
+	      display.asyncExec(new Runnable() {
+	        public void run() {
+	          if (progressBar.isDisposed()) return;
+	          progressBar.setSelection(progressBar.getSelection() + 1);
+	        }
+	      });
+	    }
+	  }
+	}

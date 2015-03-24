@@ -117,12 +117,15 @@ public class Utils {
 		}
 		public static  Map<String, String> googleNumber(String search) throws UnsupportedEncodingException, IOException{
 			String google = "http://www.google.com/search?q=";
+			String yandex = "http://yandex.ru/yandsearch?text=";
+			String googleSelector = "li.g>h3>a";
+			String yandexSelector = "[class=\"b-link serp-item__title-link\"]";
 			String charset = "UTF-8";
 			String userAgent = "ExampleBot 1.0 (+http://example.com/bot)"; // Change this to your company's name and bot homepage!
 			 Map<String, String> hashmap = new HashMap<String, String>();
 			
 
-			Elements links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select("li.g>h3>a");
+			Elements links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select(googleSelector);
 
 			for (Element link : links) {
 			    String title = link.text();
@@ -140,6 +143,10 @@ public class Utils {
 			    
 			 if (hashmap.size()>5)break;
 			}
+			
+			
+			
+			
 			return hashmap;
 		}
 		
@@ -192,6 +199,14 @@ public class Utils {
 			list.add("notacall");
 			list.add("mightynumber");
 			list.add("kto-mne-zvonil");
+			list.add("every-number");
+			list.add("heqo.ru");
+		/*	list.add("mightynumber");
+			list.add("mightynumber");
+			list.add("mightynumber");
+			list.add("mightynumber");
+			list.add("mightynumber");
+			list.add("mightynumber");*/
 			
 			for(String i:list) if(url.contains(i))return true;
 			return false;
@@ -199,15 +214,9 @@ public class Utils {
 		
 		
 		
-		 public static void main(String[] args) {
-			 System.out.println(callHistory("89223331910"));
-             try {
-                 new URI(callHistory("89223331910"));
-             } catch (URISyntaxException x) {
-                 IllegalArgumentException y = new IllegalArgumentException("Address of hyperlink must be a valid URI");
-                 y.initCause(x);
-                 throw y;
-		 }
+		 public static void main(String[] args) throws UnsupportedEncodingException, IOException {
+			 googleNumber("89223331910");
+   
 		 }
 }
 	

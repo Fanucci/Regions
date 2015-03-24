@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -119,7 +120,7 @@ public class Utils {
 			String charset = "UTF-8";
 			String userAgent = "ExampleBot 1.0 (+http://example.com/bot)"; // Change this to your company's name and bot homepage!
 			 Map<String, String> hashmap = new HashMap<String, String>();
-			 System.out.println(search);
+			// System.out.println(search);
 
 			Elements links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select("li.g>h3>a");
 
