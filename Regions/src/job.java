@@ -31,6 +31,7 @@ public class job{
 	FileInputStream file;
 	Iterator<Row> rowIterator;
 	Cell cell;
+	Row row;
 	
 	public job(File file2) throws IOException{
 		file1=file2;
@@ -49,6 +50,12 @@ public class job{
         GUI.progressBar.setMaximum(rowsQ);
         System.out.println("Total rows:" + rowsQ);
         System.out.println("Total columns:" + sheet.getRow(0).getPhysicalNumberOfCells());
+	}
+	public boolean checkCellNull(Cell cell){
+		cell = row.getCell(0);
+		if(cell.getNumericCellValue()==0 || cell == null) return true;
+		else return false;
+				
 	}
 	
 	public void makeOneRow(Row row) throws UnsupportedEncodingException, IOException{
@@ -123,24 +130,29 @@ public class job{
 	public void saveFile() throws IOException{
         file.close();
         String name = file1.getName().substring(0,file1.getName().lastIndexOf(".xlsx"))+"+регионы.xlsx";
-        System.out.println(name);
-        FileOutputStream fileOut = new FileOutputStream(name);
+        
+        String absolutePath = file1.getAbsolutePath();
+	    String filePath = absolutePath.
+	    	     substring(0,absolutePath.lastIndexOf(File.separator));
+	    
+	    System.out.println(filePath+"\\"+name);
+        FileOutputStream fileOut = new FileOutputStream(filePath+"\\"+name);
         workbook.write(fileOut);
         fileOut.close();
+	}
+	
+	public void moveOneRow(){
+        row = rowIterator.next();
 	}
 
     	public void writeExcel () {
         try
         {
-                Row row = rowIterator.next();
-
+        	moveOneRow();
+                if (!checkCellNull(cell)) makeOneRow(row);
                 rowsCur++;
                 GUI.progressBar.setSelection(rowsCur);
 
-                cell = row.getCell(0);
-                if (cell.getNumericCellValue()!=0 || cell != null){
-                makeOneRow(row);
-                }
                 System.out.println("");
             if (rowIterator.hasNext()) writeExcel();
             else saveFile();
