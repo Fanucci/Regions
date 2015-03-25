@@ -32,17 +32,6 @@ public class job{
 	Iterator<Row> rowIterator;
 	Cell cell;
 	
-	public int getRowsQ(){
-		return rowsQ;
-	}
-	public int getRowsCur(){
-		return rowsCur;
-	}
-	
-	public int updateBar(){
-		return rowsCur;
-	}
-	
 	public job(File file2) throws IOException{
 		file1=file2;
 		file = new FileInputStream(file2);
