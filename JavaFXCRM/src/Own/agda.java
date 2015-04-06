@@ -96,6 +96,7 @@ public class agda extends Application {
                     (t.getTableView().getItems().get(
                         t.getTablePosition().getRow())
                         ).setEmail(t.getNewValue());
+                    t.getTableColumn().getColumns().add(new TableColumn("+1"));
                 }
             }
         );

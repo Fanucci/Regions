@@ -1,27 +1,57 @@
 package ch.makery.address.view;
 
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import ch.makery.address.MainApp;
 import ch.makery.address.model.Person;
 import ch.makery.address.util.DateUtil;
 
 public class PersonOverviewController {
-    @FXML
-    private TableView<Person> personTable;
+  
     @FXML
     private TableView<Person> telephones;
     @FXML
-    private TableColumn<Person, String> firstNameColumn;
+    private TableColumn<Person, String> telephonesCol;
+  /*  @FXML
+    private TableView<Person> personTable;
     @FXML
-    private TableColumn<Person, String> lastNameColumn;
+    private TableColumn<Person, String> telephonesCol;
+    @FXML
+    private TableView<ObservableList<String>> tableTime;
+    @FXML
+    private TableColumn<Person, String> timee;*/
 
     @FXML
+    private Button DragMeButton;
+    @FXML
+    private GridPane calendaar;
+
+   @FXML
     private Label firstNameLabel;
     @FXML
     private Label lastNameLabel;
@@ -36,6 +66,8 @@ public class PersonOverviewController {
 
     // Reference to the main application.
     private MainApp mainApp;
+	private int i;
+	private int j;
 
     /**
      * The constructor.
@@ -50,20 +82,27 @@ public class PersonOverviewController {
      */
     @FXML
     private void initialize() {
+    	
+    	
         // Initialize the person table with the two columns.
-        firstNameColumn.setCellValueFactory(cellData -> cellData.getValue().firstNameProperty());
-        lastNameColumn.setCellValueFactory(cellData -> cellData.getValue().lastNameProperty());
-        firstNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        firstNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        telephonesCol.setCellValueFactory(cellData -> cellData.getValue().firstNameProperty());
         
+        telephonesCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
         // Clear person details.
         showPersonDetails(null);
+        
 
+addDnDlisteners(telephones);
+addDnDlisteners(DragMeButton);
+addDnDlisteners(firstNameLabel);
+initGrid();
         // Listen for selection changes and show the person details when changed.
-        personTable.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showPersonDetails(newValue));
+
         telephones.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldValue, newValue) -> showPersonDetails(newValue));
+        
     }
 
     /**
@@ -75,7 +114,7 @@ public class PersonOverviewController {
         this.mainApp = mainApp;
 
         // Add observable list data to the table
-        personTable.setItems(mainApp.getPersonData());
+
         telephones.setItems(mainApp.getPersonData());
     }
     
@@ -110,9 +149,9 @@ public class PersonOverviewController {
      */
     @FXML
     private void handleDeletePerson() {
-        int selectedIndex = personTable.getSelectionModel().getSelectedIndex();
+        int selectedIndex = telephones.getSelectionModel().getSelectedIndex();
         if (selectedIndex >= 0) {
-            personTable.getItems().remove(selectedIndex);
+        	telephones.getItems().remove(selectedIndex);
         } else {
             // Nothing selected.
             Alert alert = new Alert(AlertType.WARNING);
@@ -144,7 +183,7 @@ public class PersonOverviewController {
      */
     @FXML
     private void handleEditPerson() {
-        Person selectedPerson = personTable.getSelectionModel().getSelectedItem();
+        Person selectedPerson = telephones.getSelectionModel().getSelectedItem();
         if (selectedPerson != null) {
             boolean okClicked = mainApp.showPersonEditDialog(selectedPerson);
             if (okClicked) {
@@ -162,17 +201,116 @@ public class PersonOverviewController {
             alert.showAndWait();
         }
     }
-    @FXML
-    private void onEditCommit1(TableColumn.CellEditEvent<Person, String>t){
-    	
-    	System.out.println("New value:"+t.getNewValue());
+   
+    
+    private static void log(Object o) {
+        System.out.println(""+o);
+   }
+    public void addDnDlisteners(Node where){
+        // dnd stuff begin
+    	where.setOnDragDetected(new EventHandler<MouseEvent>() {
+            @Override public void handle(final MouseEvent me) {
+                 log("setOnDragDetected("+me+")");
+                 final Dragboard db = where.startDragAndDrop(TransferMode.COPY);
+                 final ClipboardContent content = new ClipboardContent();
+                 content.putString("Drag Me!");
+                 db.setContent(content);
+                 me.consume();
+            }
+       });
+    	where.setOnDragEntered(new EventHandler<DragEvent>() {
+            @Override public void handle(final DragEvent de) {
+            	log("setOnDragEntered("+de+")");
+            }
+       });
+       
+    	where.setOnDragOver(new EventHandler<DragEvent>() {
+            @Override public void handle(final DragEvent de) {
+                 de.acceptTransferModes(TransferMode.COPY);
+             	
+                 de.consume();
+            }
+       });
+    	where.setOnDragDropped(new EventHandler<DragEvent>() {
+            @Override public void handle(final DragEvent de) {
 
-            	Person nedd = t.getTableView().getItems().get(
-                        t.getTablePosition().getRow());
+            	log("setOnDragDropped("+de+")");
+            }
+       });
+    }
+    
+    public void initGrid(){
+    	int hours = 9;
+    	String correctHour = null;
+        GridPane gridpane = calendaar;
+        gridpane.setPadding(new Insets(5));
+       // calendaar.setLeftAnchor(gridpane, 50.0); calendaar.setRightAnchor(gridpane, 50.0); calendaar.setTopAnchor(gridpane, 50.0); calendaar.setBottomAnchor(gridpane, 50.0);
+        gridpane.setHgap(0);
+        gridpane.setVgap(0);
+       
+        Label candidatesLbl = new Label("Left");
+        GridPane.setHalignment(candidatesLbl, HPos.CENTER);
+        gridpane.add(candidatesLbl, 0, 0);
 
-                nedd.setFirstName(t.getNewValue());
-                
+        
+        for (int j = 0; j < 21; j++) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setHgrow(Priority.SOMETIMES);
+            gridpane.getColumnConstraints().add(cc);
+        }
 
- 
+        for (int j = 0; j < 6; j++) {
+            RowConstraints rc = new RowConstraints();
+            rc.setVgrow(Priority.SOMETIMES);
+            gridpane.getRowConstraints().add(rc);
+        }
+        
+        
+        
+        
+        
+        for (j=1;j<22;j++){
+        	if ((j & 1) == 1 )correctHour = hours+":00";
+        	else {
+        		correctHour=hours+":30";
+        		hours++;
+        	}
+        	 Label sr = new Label(correctHour);
+        	 gridpane.add(sr, 0, j);
+        	 
+             for (i=1;i<6;i++){
+            	 
+                 Button dgfh = new Button(); //can add text
+                 dgfh.setStyle("-fx-background-radius: 0;-fx-background-color:  #FAFAFA;-fx-border-color:  #ADADAD;-fx-border-width: 0 0.3 0 0.3;");
+                 if ((j & 1) == 1 )dgfh.setStyle("-fx-background-color:  #EBF3FF;-fx-border-color:  #ADADAD;-fx-border-width: 0 0.3 0 0.3;");
+                 dgfh.setPrefWidth(150);
+                 gridpane.add(dgfh, i, j);
+
+                 addDnDlisteners(dgfh);
+                 dgfh.setOnAction(new EventHandler<ActionEvent>() {
+     
+                	    @Override public void handle(ActionEvent e) {
+                	    Button newButt = new Button();
+                	      HBox hbox1 = new HBox();
+                	      Object source = e.getSource();
+
+                	          Button clickedBtn = (Button) source; // that's the button that was clicked
+                	          int i = GridPane.getColumnIndex(dgfh);
+                	          int j = GridPane.getRowIndex(dgfh);
+                	          System.out.println("Column: " + i + " || Row: " + j);
+                	          newButt.setStyle("-fx-background-radius: 0;-fx-background-color:  #FAFAFA;-fx-border-color:  #ADADAD;-fx-border-width: 0 0.3 0 0.3;");
+                              if ((j & 1) == 1 )newButt.setStyle("-fx-background-color:  #EBF3FF;-fx-border-color:  #ADADAD;-fx-border-width: 0 0.3 0 0.3;");
+                	          clickedBtn.setText("Added"); // prints the id of the button
+                	      
+                	      gridpane.add(hbox1, i, j);
+                	      dgfh.setPrefWidth(130);
+                	      hbox1.getChildren().addAll(dgfh,newButt);    
+                	    }
+                	});
+                 }
+        }
+        
+    //    calendaar.getChildren().add(gridpane);      
+      
     }
 }
